@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Market Tendency Trading Cheatsheet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn.save {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+        }
+
+        .btn.reset {
+            background: linear-gradient(135deg, #f44336, #da190b);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background-color: #f7fafc;
+            transform: scale(1.001);
+            transition: all 0.2s ease;
+        }
+
+        .editable {
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 8px;
+            border-radius: 6px;
+            width: 100%;
+            min-height: 40px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .editable:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: #f0f9ff;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .day-monday { background-color: #fef2f2; }
+        .day-tuesday { background-color: #f0f9ff; }
+        .day-wednesday { background-color: #f0fdf4; }
+        .day-thursday { background-color: #fffbeb; }
+        .day-friday { background-color: #fdf2f8; }
+
+        .volume-highest { color: #dc2626; font-weight: bold; }
+        .volume-high { color: #ea580c; font-weight: 600; }
+        .volume-medium { color: #d97706; }
+        .volume-low { color: #65a30d; }
+
+        .volatility-highest { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+        .volatility-high { background: linear-gradient(135deg, #ea580c, #f97316); color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+        .volatility-medium { background: linear-gradient(135deg, #d97706, #f59e0b); color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+        .volatility-low { background: linear-gradient(135deg, #65a30d, #84cc16); color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+
+        .strategy-aggressive { color: #dc2626; font-weight: bold; }
+        .strategy-active { color: #ea580c; font-weight: 600; }
+        .strategy-selective { color: #d97706; font-weight: 500; }
+        .strategy-avoid { color: #6b7280; font-style: italic; }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #4facfe;
+        }
+
+        .stats-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .stats-table {
+            width: 100%;
+            font-size: 13px;
+        }
+
+        .stats-table th {
+            background: #f7fafc;
+            color: #2d3748;
+            padding: 10px 8px;
+        }
+
+        .stats-table td {
+            padding: 8px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            margin-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Interactive Market Tendency Trading Cheatsheet</h1>
+        <p class="subtitle">Editable Monday to Friday Intraday Analysis by Day & Time</p>
+        
+        <div class="controls">
+            <button class="btn save" onclick="saveData()">💾 Save Changes</button>
+            <button class="btn reset" onclick="resetData()">🔄 Reset to Default</button>
+            <button class="btn export-btn" onclick="exportData()">📊 Export Data</button>
+        </div>
+
+        <div class="table-container">
+            <table id="tradingTable">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time (EST)</th>
+                        <th>Market Tendency</th>
+                        <th>Volume</th>
+                        <th>Volatility</th>
+                        <th>Position Strategy</th>
+                        <th>No Position Strategy</th>
+                        <th>Logic Algorithm</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Table rows will be generated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-card">
+                <h3>📊 Daily Trading Performance Rankings</h3>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Day</th>
+                            <th>Success Rate</th>
+                            <th>Best Strategy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>#1</td><td>Wednesday</td><td contenteditable="true" class="editable">75-85%</td><td contenteditable="true" class="editable">Momentum/Trend Following</td></tr>
+                        <tr><td>#2</td><td>Tuesday</td><td contenteditable="true" class="editable">70-80%</td><td contenteditable="true" class="editable">Breakout Trading</td></tr>
+                        <tr><td>#3</td><td>Thursday</td><td contenteditable="true" class="editable">65-75%</td><td contenteditable="true" class="editable">Swing Position Adjustments</td></tr>
+                        <tr><td>#4</td><td>Friday</td><td contenteditable="true" class="editable">55-65%</td><td contenteditable="true" class="editable">Day Trading/Scalping</td></tr>
+                        <tr><td>#5</td><td>Monday</td><td contenteditable="true" class="editable">45-55%</td><td contenteditable="true" class="editable">Gap Trading/Observation</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="stats-card">
+                <h3>⚡ Weekly Pattern Algorithm</h3>
+                <div contenteditable="true" class="editable" style="min-height: 150px;">
+                    <strong>BEST TRADING WINDOW:</strong> Tuesday 9:30 AM - Thursday 11:30 AM<br>
+                    - Highest institutional participation<br>
+                    - Most predictable price movements<br>
+                    - Best risk/reward ratios<br>
+                    - Optimal volume and volatility balance<br><br>
+                    
+                    <strong>RISK MANAGEMENT BY DAY:</strong><br>
+                    Monday: 50% normal position size (gap risk)<br>
+                    Tuesday: 100% normal position size (prime day)<br>
+                    Wednesday: 100% normal position size (peak day)<br>
+                    Thursday: 75% normal position size (profit-taking begins)<br>
+                    Friday: 25% normal position size (day trades only)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        Changes saved successfully! 💾
+    </div>
+
+    <script>
+        // Default data for the trading table
+        const defaultData = [
+            ['MONDAY', '8:30 AM', 'Weekend Gap Analysis', 'Low', 'HIGH', 'CAUTIOUS - Monday gaps common. Wait for direction. Use smaller position sizes.', 'WAIT - High gap risk. Study weekend news impact. Prepare watchlist only.', 'Monday Gap Rule: >3% gap = high reversal risk. <1% gap = possible continuation. Volume must confirm direction.'],
+            ['MONDAY', '9:30 AM', 'Gap Fill/Rejection', 'High', 'HIGHEST', 'DEFENSIVE - Quick scalps only. Avoid overnight holds from Friday.', 'SELECTIVE - Only trade strong gap fills. Avoid new positions if unclear.', 'Monday Effect: Lower returns expected. Trade gap fills to previous close. Exit by 10:30 AM.'],
+            ['MONDAY', '10:30 AM', 'Direction Setting', 'Medium', 'Medium-High', 'PATIENT - Let Monday establish weekly tone. Trail stops tightly.', 'OBSERVE - Study sector rotation. Prepare for Tuesday-Thursday strength.', 'Trend Establishment: Monday sets weekly bias. If range-bound, wait for Tuesday breakout.'],
+            ['MONDAY', '11:30 AM', 'Lunch Lull', 'Low', 'Low', 'EXIT - Close Monday positions. Prepare for mid-week action.', 'AVOID - Save capital for high-probability mid-week setups.', 'Range Trading: Low Monday volume. Only trade obvious support/resistance bounces.'],
+            
+            ['TUESDAY', '8:30 AM', 'Pre-market Strength', 'Low-Medium', 'Medium', 'MONITOR - Tuesday often bullish. Look for continuation setups.', 'PREPARE - Best trading day begins. Scan for breakout candidates.', 'Tuesday Setup: Historically strong day. Look for Monday low breakouts with volume confirmation.'],
+            ['TUESDAY', '9:30 AM', 'Power Hour Prime', 'HIGHEST', 'HIGHEST', 'AGGRESSIVE - Strongest day for momentum. Scale into trends.', 'ENTER - Prime entry day. Follow institutional money flow.', 'Tuesday Breakouts: Monday range breaks + volume spike = high probability. RSI >40 on breakout.'],
+            ['TUESDAY', '10:30 AM', 'Trend Continuation', 'High', 'High', 'ACTIVE - Best day for trend following. Use wider stops.', 'ACTIVE - Enter pullbacks in established trends. High success rate.', 'Mid-Week Power: Tuesday-Thursday strongest. Pullback to EMA9 = buy signal in uptrend.'],
+            ['TUESDAY', '11:30 AM', 'Sustained Move', 'Medium-High', 'Medium', 'HOLD - Tuesday trends persist. Trail stops.', 'ENTER - Late entries still profitable on Tuesdays.', 'Trend Persistence: Tuesday moves last longer. Don\'t exit early. Use 20-period stops.'],
+            
+            ['WEDNESDAY', '8:30 AM', 'Mid-Week Momentum', 'Medium', 'Medium', 'ACTIVE - Peak trading day. Multiple timeframe alignment.', 'SCAN - Best setups appear. Look for sector leaders.', 'Wednesday Peak: Highest returns day. Economic data releases common. Trade news reactions.'],
+            ['WEDNESDAY', '9:30 AM', 'Volume Peak', 'HIGHEST', 'HIGHEST', 'MAXIMUM - Peak performance day. Use full position sizes.', 'PRIME - Best entry opportunities. Multiple chances for profits.', 'Wednesday Algorithm: Highest volume + volatility. Multiple entries possible. Scale in on dips.'],
+            ['WEDNESDAY', '10:30 AM', 'Continuation Strong', 'High', 'High', 'SCALE - Add to winners. Wednesday trends are reliable.', 'FOLLOW - Enter trend continuations. High probability setups.', 'Trend Reliability: Wednesday moves most predictable. Add to positions showing strength.'],
+            ['WEDNESDAY', '11:30 AM', 'Pre-Lunch Power', 'Medium-High', 'Medium-High', 'MAINTAIN - Don\'t exit early. Wednesday strength continues.', 'LATE ENTRY - Still time for profitable entries.', 'Extended Trading: Wednesday avoids typical lunch lull. Stay active until 12:00 PM.'],
+            
+            ['THURSDAY', '8:30 AM', 'Late Week Setup', 'Medium', 'Medium-High', 'STRATEGIC - Position for Friday reactions. Watch for reversals.', 'SELECTIVE - Choose setups carefully. Friday effect approaching.', 'Thursday Transition: Strong day but prepare for Friday volatility. Economic data heavy day.'],
+            ['THURSDAY', '9:30 AM', 'Institutional Activity', 'High', 'High', 'ACTIVE - High institutional volume. Follow smart money.', 'ENTER - Last prime entry day of week. Follow large volume moves.', 'Institutional Flow: Thursday = portfolio adjustments. Follow unusual volume in large caps.'],
+            ['THURSDAY', '10:30 AM', 'Position Adjustment', 'Medium-High', 'Medium-High', 'ADJUST - Prepare for Friday. Take some profits.', 'CAREFUL - Enter only strongest setups. Weekend risk approaches.', 'Risk Management: Start reducing exposure. Take 30-50% profits on swing trades.'],
+            ['THURSDAY', '11:30 AM', 'Pre-Friday Setup', 'Medium', 'Medium', 'REDUCE - Scale down for Friday volatility. Trail stops.', 'MINIMAL - Avoid new positions. Prepare for Friday patterns.', 'Friday Preparation: Reduce risk before Friday volatility. Tighten all stops.'],
+            
+            ['FRIDAY', '8:30 AM', 'Weekly Close Setup', 'Low-Medium', 'HIGH', 'DEFENSIVE - Friday volatility high. Use tight stops.', 'CAUTIOUS - High unpredictability. Weekend risk premium.', 'Friday Volatility: Highest volatility but unpredictable direction. Focus on day trades only.'],
+            ['FRIDAY', '9:30 AM', 'Volatile Open', 'High', 'HIGHEST', 'SCALPING - Day trades only. No overnight holds. Quick profits.', 'DAY TRADE - Scalp only. Avoid position trades. High reversal risk.', 'Friday Scalping: Quick 15-30 min trades. No holds past 2 PM. High volatility = tight stops.'],
+            ['FRIDAY', '10:30 AM', 'Profit Taking', 'Medium', 'High', 'CLOSE - Take profits. Avoid weekend risk.', 'MINIMAL - Low probability. Focus on next week preparation.', 'Profit Taking: Institutions close positions. Follow the selling. Avoid fighting the trend.'],
+            ['FRIDAY', '11:30 AM', 'Weekend Prep', 'Low-Medium', 'Medium-High', 'EXIT ALL - Close all positions. Weekend risk too high.', 'STUDY - Plan next week. Review performance. No new trades.', 'Weekend Rule: Exit everything by 12:00 PM unless very strong conviction trade.']
+        ];
+
+        // Load data from localStorage or use default
+        let tableData = JSON.parse(localStorage.getItem('tradingData')) || defaultData;
+
+        function createTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            tableData.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                tr.className = `day-${row[0].toLowerCase()}`;
+                
+                row.forEach((cell, cellIndex) => {
+                    const td = document.createElement('td');
+                    
+                    if (cellIndex === 0) { // Day column
+                        td.innerHTML = `<strong>${cell}</strong>`;
+                        td.className = `day-${cell.toLowerCase()}`;
+                    } else {
+                        const input = document.createElement('textarea');
+                        input.className = 'editable';
+                        input.value = cell;
+                        input.onchange = () => updateCell(rowIndex, cellIndex, input.value);
+                        
+                        // Add styling based on content
+                        if (cellIndex === 3) { // Volume column
+                            if (cell.includes('HIGHEST')) input.className += ' volume-highest';
+                            else if (cell.includes('High')) input.className += ' volume-high';
+                            else if (cell.includes('Medium')) input.className += ' volume-medium';
+                            else input.className += ' volume-low';
+                        }
+                        
+                        if (cellIndex === 4) { // Volatility column
+                            if (cell.includes('HIGHEST')) input.className += ' volatility-highest';
+                            else if (cell.includes('High')) input.className += ' volatility-high';
+                            else if (cell.includes('Medium')) input.className += ' volatility-medium';
+                            else input.className += ' volatility-low';
+                        }
+                        
+                        td.appendChild(input);
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateCell(rowIndex, cellIndex, value) {
+            tableData[rowIndex][cellIndex] = value;
+        }
+
+        function saveData() {
+            localStorage.setItem('tradingData', JSON.stringify(tableData));
+            showNotification('Changes saved successfully! 💾');
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all data to default values?')) {
+                tableData = JSON.parse(JSON.stringify(defaultData));
+                localStorage.removeItem('tradingData');
+                createTable();
+                showNotification('Data reset to default values! 🔄');
+            }
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(tableData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'trading_cheatsheet_data.json';
+            link.click();
+            showNotification('Data exported successfully! 📊');
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the table on page load
+        createTable();
+
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            saveData();
+        }, 30000);
+    </script>
+</body>
+</html>
